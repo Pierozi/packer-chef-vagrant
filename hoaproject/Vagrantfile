@@ -1,0 +1,40 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+API_VER = '2'
+
+Vagrant.configure(API_VER) do |config|
+    config.vm.box = 'pierozi/debian-7-amd64-chef'
+    config.vm.hostname = 'hoa-chef-64.vagrant'
+
+    config.omnibus.chef_version = :latest
+    config.berkshelf.berksfile_path = 'Berksfile'
+    config.berkshelf.enabled = true
+	
+    config.vm.provision 'chef_solo' do |chef|
+	    chef.json = {
+            'php-dotdeb' => {
+                'ver' => 'php55'
+            }
+        }
+        
+        chef.log_level = :debug
+
+        chef.add_recipe 'lepp::default'
+        chef.add_recipe 'lepp::php-dotdeb'
+    end
+
+    ###
+    #Install HOA requirement
+    ###
+    
+    # Composer
+    config.vm.provision :shell, inline: 'curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --filename=composer'
+
+    # Hoa.Central
+    config.vm.provision :shell, inline: '[ -d /usr/local/lib/Hoa.Central ] && git --git-dir /usr/local/lib/Hoa.Central/.git pull || true'
+    config.vm.provision :shell, inline: '[ -d /usr/local/lib/Hoa.Central ] || git clone http://git.hoa-project.net/Central.git /usr/local/lib/Hoa.Central'
+    config.vm.provision :shell, inline: '[ -L /usr/local/bin/hoa ] || ln -s /usr/local/lib/Hoa.Central/Hoa/Core/Bin/hoa /usr/local/bin/hoa'
+    config.vm.provision :shell, inline: '[ -L /usr/local/lib/Hoa ] || ln -s /usr/local/lib/Hoa.Central/Hoa /usr/local/lib/Hoa'
+end
+

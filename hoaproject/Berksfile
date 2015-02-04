@@ -1,0 +1,3 @@
+source "https://api.berkshelf.com"
+
+cookbook 'lepp', path: 'cookbook/lepp'
